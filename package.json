@@ -1,0 +1,23 @@
+{
+  "name": "confluxweb-htlc-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posaggen/confluxWeb-HTLC-Example.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/posaggen/confluxWeb-HTLC-Example/issues"
+  },
+  "homepage": "https://github.com/posaggen/confluxWeb-HTLC-Example#readme",
+  "dependencies": {
+    "bignumber.js": "^9.0.0",
+    "conflux-web": "^0.1.34"
+  }
+}
