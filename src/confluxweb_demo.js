@@ -5,8 +5,8 @@ const BigNumber = require('bignumber.js');
 const ConfluxWeb = require('conflux-web');
 
 // create a a new conflux-web connection
-//const confluxWeb = new ConfluxWeb('http://testnet-jsonrpc.conflux-chain.org:12537');
-const confluxWeb = new ConfluxWeb('http://127.0.0.1:12537');
+const confluxWeb = new ConfluxWeb('http://testnet-jsonrpc.conflux-chain.org:12537');
+//const confluxWeb = new ConfluxWeb('http://127.0.0.1:12537');
 
 // Adds an account using a private key
 const priv_key = '0xdd84f341fb45c764a094d35bf484367b8d2797a997142f9c5cd4d488556f0db7';
