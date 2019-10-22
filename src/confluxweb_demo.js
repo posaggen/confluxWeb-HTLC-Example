@@ -25,22 +25,16 @@ const abi = [{"constant":false,"inputs":[{"name":"_receiver","type":"address"},{
 
 // deploy contract
 async function deployHTLC() {
-  // get nonce
-  let nonce = await confluxWeb.cfx.getTransactionCount(pub_key);
-  // transaction params
-  const txParams = {
-    from: 0, // use wallet account with index 0
-    nonce: nonce,
-    gasPrice: 10,
+  // get contract instance from abi
+  const cfx_htlc = new confluxWeb.cfx.Contract(abi);
+  // deploy contract and send transaction
+  const tx_hash = await cfx_htlc.deploy({
+    data: data,
+  }).send({
+    from: pub_key,
     gas: 10000000,
-    value: 0,
-    to: null, // contract creation
-    data: data, // contract bytecode
-  };
-  // sign transaction and get raw transaction string
-  const {rawTransaction} = await confluxWeb.cfx.signTransaction(txParams);
-  // send transaction
-  const tx_hash = await confluxWeb.cfx.sendSignedTransaction(rawTransaction);
+    gasPrice: 100,
+  });
   // wait for receipt
   const receipt = await waitForReceipt(tx_hash);
   return receipt.contractCreated;
@@ -49,25 +43,14 @@ async function deployHTLC() {
 // fund money to HTLC contract and get the hash lock id
 async function fund(cfx_htlc_addr) {
   // get contract instance from address and abi
-  const cfx_htlc = new confluxWeb.cfx.Contract(abi, cfx_htlc_addr, {
-    defaultGasPrice : '10'
-  });
-  // get nonce
-  let nonce = await confluxWeb.cfx.getTransactionCount(pub_key);
-  // transaction params
-  const txParams = {
-    from: 0,
-    nonce: nonce,
-    gasPrice: 10,
+  const cfx_htlc = new confluxWeb.cfx.Contract(abi, cfx_htlc_addr);
+  // call methods newContract() to build a new htlc to pub_key itself
+  const tx_hash = await cfx_htlc.methods.newContract(pub_key, secret_hash, timelock).send({
+    from: pub_key,
     gas: 10000000,
+    gasPrice: 100,
     value: amount,
-    to: cfx_htlc_addr,
-    // call methods to build a new htlc to pub_key itself
-    data: cfx_htlc.methods.newContract(pub_key, secret_hash, timelock).encodeABI()
-  };
-  // sign, send and wait for receipt
-  const {rawTransaction} = await confluxWeb.cfx.signTransaction(txParams);
-  const tx_hash = await confluxWeb.cfx.sendSignedTransaction(rawTransaction);
+  });
   const receipt = await waitForReceipt(tx_hash);
   // get the created hash time lock id from event logs
   let logs = await confluxWeb.cfx.getPastLogs({
@@ -84,9 +67,7 @@ async function fund(cfx_htlc_addr) {
 // check if created HTLC is valid using a "constant" call
 async function checkHTLC(cfx_htlc_addr, htlc_id) {
   // get contract instance from address and abi
-  const cfx_htlc = new confluxWeb.cfx.Contract(abi, cfx_htlc_addr, {
-    defaultGasPrice : '10'
-  });
+  const cfx_htlc = new confluxWeb.cfx.Contract(abi, cfx_htlc_addr);
   // make a call to get information of HTLC with htlc_id
   let c = await cfx_htlc.methods.getContract(htlc_id).call(); 
   // check information
@@ -104,24 +85,13 @@ async function checkHTLC(cfx_htlc_addr, htlc_id) {
 
 async function withdraw(cfx_htlc_addr, htlc_id) {
   // get contract instance from address and abi
-  const cfx_htlc = new confluxWeb.cfx.Contract(abi, cfx_htlc_addr, {
-    defaultGasPrice : '10'
+  const cfx_htlc = new confluxWeb.cfx.Contract(abi, cfx_htlc_addr);
+  // call methods newContract() to build a new htlc to pub_key itself
+  const tx_hash = await cfx_htlc.methods.withdraw(htlc_id, secret).send({
+    from: pub_key,
+    gas: 10000000,
+    gasPrice: 100,
   });
-  // get nonce
-  let nonce = await confluxWeb.cfx.getTransactionCount(pub_key);
-  // transaction params
-  const txParams = {
-    from: 0,
-    nonce: nonce,
-    gasPrice: 10,
-    gas: 10000000,     
-    to: cfx_htlc_addr,
-    // take money back from HTLC with secret
-    data: cfx_htlc.methods.withdraw(htlc_id, secret).encodeABI(),
-  };
-  // sign, send and wait for receipt
-  const {rawTransaction} = await confluxWeb.cfx.signTransaction(txParams);
-  const tx_hash = await confluxWeb.cfx.sendSignedTransaction(rawTransaction);
   const receipt = await waitForReceipt(tx_hash);
   return receipt.outcomeStatus;
 }
